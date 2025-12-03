@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$SLOWPOKE - The Slowest Coin on Chain</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Vt323&display=swap');
+
+        :root {
+            --neon-pink: #FF10F0;
+            --neon-cyan: #00FFFF;
+            --neon-yellow: #FFFF00;
+            --bg-dark: #0a0a1a;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Fredoka One', cursive;
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23FF10F0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>') 16 16, auto;
+        }
+
+        /* --- Custom Animations --- */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(255, 16, 240, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(255, 16, 240, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(255, 16, 240, 0); }
+        }
+
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-shake:hover { animation: shake 0.5s ease-in-out; }
+        .animate-spin-slow { animation: spin-slow 20s linear infinite; }
+        .animate-glitch { animation: glitch 0.3s infinite; }
+        .animate-pulse-ring { animation: pulse-ring 2s infinite; }
+
+        .neon-text {
+            text-shadow: 3px 3px 0px var(--neon-pink), -3px -3px 0px var(--neon-cyan);
+        }
+
+        .neon-box {
+            box-shadow: 5px 5px 0px var(--neon-pink), -5px -5px 0px var(--neon-cyan);
+            transition: all 0.2s;
+        }
+
+        .neon-box:active {
+            transform: translate(4px, 4px);
+            box-shadow: 1px 1px 0px var(--neon-pink), -1px -1px 0px var(--neon-cyan);
+        }
+
+        /* Sparkle Canvas */
+        #sparkle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Slot Machine Slider */
+        .slider-container {
+            height: 60px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slider-content {
+            animation: slide-vertical 9s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+            text-align: center;
+        }
+
+        .slider-item {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.25rem; /* 4xl equivalent */
+            font-weight: 900;
+            color: black;
+            text-transform: uppercase;
+        }
+
+        @keyframes slide-vertical {
+            0%, 25% { transform: translateY(0); }
+            33%, 58% { transform: translateY(-60px); }
+            66%, 91% { transform: translateY(-120px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Retro Font for Code */
+        .retro-font {
+            font-family: 'Vt323', monospace;
+        }
+        
+        .blob-shape {
+            border-radius: 46% 54% 39% 61% / 46% 40% 60% 54%;
+        }
+    </style>
+</head>
+<body class="text-white relative">
+
+    <!-- Sparkle Canvas Overlay -->
+    <canvas id="sparkle-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-black/80 backdrop-blur-md border-b-4 border-[var(--neon-pink)]">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-3xl font-bold tracking-wider text-[var(--neon-yellow)] animate-shake cursor-pointer">
+                $SLOWPOKE
+            </div>
+            <div class="hidden md:flex space-x-8 text-xl">
+                <a href="#about" class="hover:text-[var(--neon-cyan)] transition-colors hover:scale-110 transform">LORE</a>
+                <a href="#tokenomics" class="hover:text-[var(--neon-cyan)] transition-colors hover:scale-110 transform">STATS</a>
+                <a href="#roadmap" class="hover:text-[var(--neon-cyan)] transition-colors hover:scale-110 transform">SLEEP SCHEDULE</a>
+            </div>
+            <button onclick="copyContract()" class="bg-[var(--neon-cyan)] text-black px-6 py-2 rounded-full font-bold hover:bg-white hover:scale-105 transition-all neon-box animate-pulse">
+                BUY NOW
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center pt-20 relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute top-20 left-10 text-[var(--neon-pink)] opacity-20 text-9xl animate-spin-slow">
+            <i class="fas fa-star"></i>
+        </div>
+        <div class="absolute bottom-20 right-10 text-[var(--neon-cyan)] opacity-20 text-9xl animate-spin-slow" style="animation-direction: reverse;">
+            <i class="fas fa-asterisk"></i>
+        </div>
+
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center relative z-10">
+            <!-- Text Content -->
+            <div class="w-full md:w-1/2 text-center md:text-left mb-12 md:mb-0">
+                <h2 class="text-[var(--neon-yellow)] text-2xl md:text-4xl mb-4 retro-font tracking-widest typewriter">ERROR 404: SPEED NOT FOUND</h2>
+                <h1 class="text-6xl md:text-9xl font-extrabold mb-6 leading-tight neon-text animate-float">
+                    TOO SLOW<br>
+                    <span class="text-[var(--neon-cyan)]">TO RUG</span>
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 text-gray-300 max-w-lg mx-auto md:mx-0">
+                    The only token that moves so slowly, based on PSA card.
+                </p>
+                <div class="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
+                    <button class="bg-[var(--neon-pink)] text-white text-2xl px-8 py-4 rounded-xl border-4 border-white neon-box transform hover:scale-110 transition-transform">
+                        APE IN (SLOWLY)
+                    </button>
+                    <a href="https://x.com/i/communities/1996306976045772995" target="_blank" class="bg-transparent border-4 border-[var(--neon-cyan)] text-[var(--neon-cyan)] text-2xl px-8 py-4 rounded-xl hover:bg-[var(--neon-cyan)] hover:text-black transition-colors flex items-center justify-center">
+                        <i class="fa-brands fa-x-twitter mr-2"></i> JOIN X
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mascot Image (Replaced with 1.svg) -->
+            <div class="w-full md:w-1/2 flex justify-center items-center">
+                <div class="relative w-80 h-80 md:w-[500px] md:h-[500px] animate-float">
+                    <!-- Glow behind -->
+                    <div class="absolute inset-0 bg-[var(--neon-pink)] rounded-full blur-[100px] opacity-50 animate-pulse"></div>
+                    
+                    <!-- Mascot Image -->
+                    <img src="images/1.svg" alt="$SLOWPOKE Pokemon" class="w-full h-full object-contain relative z-10 drop-shadow-2xl">
+                    
+                    <!-- Floating Bubbles -->
+                    <div class="absolute -top-10 right-0 text-4xl animate-bounce">💤</div>
+                    <div class="absolute top-0 right-10 text-6xl animate-bounce" style="animation-delay: 0.5s">💤</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slot Machine Slider Section -->
+    <div class="bg-[var(--neon-yellow)] border-y-4 border-black py-4 rotate-1 scale-105 z-20 relative">
+        <div class="slider-container">
+            <div class="slider-content">
+                <div class="slider-item">WE ARE SLOW</div>
+                <div class="slider-item">0% TAX (WE FORGOT)</div>
+                <div class="slider-item">$SLOWPOKE TO THE POKEDEX</div>
+                <!-- The animation loops back to the start -->
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-[var(--neon-pink)] relative border-b-4 border-black">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-6xl font-bold mb-10 text-white drop-shadow-[4px_4px_0_rgba(0,0,0,1)]">WHO IS $SLOWPOKE?</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white text-black p-8 rounded-2xl border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] transform hover:-translate-y-2 transition-transform">
+                    <i class="fas fa-hourglass-half text-6xl mb-4 text-[var(--neon-pink)] animate-pulse"></i>
+                    <h3 class="text-2xl font-bold mb-2">Laziness Proof</h3>
+                    <p>We are too lazy to rug. The dev fell asleep while writing the malicious code. Funds are safe forever.</p>
+                </div>
+                <div class="bg-white text-black p-8 rounded-2xl border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] transform hover:-translate-y-2 transition-transform">
+                    <i class="fas fa-brain text-6xl mb-4 text-[var(--neon-cyan)] animate-pulse"></i>
+                    <h3 class="text-2xl font-bold mb-2">Smooth Brain</h3>
+                    <p>No complex utility. No AI. No Quantum Computing. Just a pink blob vibrating on the blockchain.</p>
+                </div>
+                <div class="bg-white text-black p-8 rounded-2xl border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] transform hover:-translate-y-2 transition-transform">
+                    <i class="fas fa-rocket text-6xl mb-4 text-[var(--neon-yellow)] animate-pulse"></i>
+                    <h3 class="text-2xl font-bold mb-2">Slow-motion Pump</h3>
+                    <p>While other coins pump and dump in seconds, we pump over 3-5 business years. Stability.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tokenomics -->
+    <section id="tokenomics" class="py-20 bg-[var(--bg-dark)] relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(var(--neon-cyan) 1px, transparent 1px); background-size: 30px 30px;"></div>
+        
+        <div class="container mx-auto px-4">
+            <h2 class="text-6xl font-bold text-center mb-16 neon-text">TOKENOMICS</h2>
+            
+            <div class="flex flex-col md:flex-row items-center justify-center gap-12">
+                <!-- Chart (CSS Pie) -->
+                <div class="relative w-64 h-64 md:w-96 md:h-96 animate-spin-slow">
+                    <div class="absolute inset-0 rounded-full border-[20px] border-[var(--neon-pink)]"></div>
+                    <div class="absolute inset-0 rounded-full border-[20px] border-[var(--neon-cyan)]" style="clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 50%); transform: rotate(45deg);"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-4xl font-bold text-white">100%</span>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="space-y-6 w-full md:w-1/2">
+                    <div class="bg-gray-800 p-6 rounded-xl border-l-8 border-[var(--neon-pink)] hover:bg-gray-700 transition-colors">
+                        <h3 class="text-[var(--neon-pink)] text-xl font-bold">TOTAL SUPPLY</h3>
+                        <p class="text-3xl text-white retro-font">1,000,000,000 $SLOWPOKE</p>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-xl border-l-8 border-[var(--neon-cyan)] hover:bg-gray-700 transition-colors">
+                        <h3 class="text-[var(--neon-cyan)] text-xl font-bold">Where?</h3>
+                        <p class="text-3xl text-white retro-font">PumpFun</p>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-xl border-l-8 border-[var(--neon-yellow)] hover:bg-gray-700 transition-colors">
+                        <h3 class="text-[var(--neon-yellow)] text-xl font-bold">Utility</h3>
+                        <p class="text-3xl text-white retro-font">DEGEN MOVE ONLY</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap" class="py-20 bg-[var(--neon-cyan)] text-black border-t-4 border-black">
+        <div class="container mx-auto px-4">
+            <h2 class="text-6xl font-bold text-center mb-16 drop-shadow-md">THE "PLAN"</h2>
+            
+            <div class="space-y-8 max-w-4xl mx-auto">
+                <!-- Phase 1 -->
+                <div class="flex items-center gap-6 group">
+                    <div class="w-20 h-20 bg-black text-[var(--neon-cyan)] rounded-full flex items-center justify-center text-4xl font-bold border-4 border-white group-hover:scale-110 transition-transform">1</div>
+                    <div class="flex-1 bg-white p-6 rounded-xl border-4 border-black neon-box">
+                        <h3 class="text-2xl font-bold">Phase 1: Wake Up</h3>
+                        <p class="text-lg">Deploy contract. Drink coffee. Realize we deployed on the wrong chain. Fix it. Sleep.</p>
+                    </div>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="flex items-center gap-6 group">
+                    <div class="w-20 h-20 bg-black text-[var(--neon-pink)] rounded-full flex items-center justify-center text-4xl font-bold border-4 border-white group-hover:scale-110 transition-transform">2</div>
+                    <div class="flex-1 bg-white p-6 rounded-xl border-4 border-black neon-box">
+                        <h3 class="text-2xl font-bold">Phase 2: Dilly Dally</h3>
+                        <p class="text-lg">1,000 Holders. Meme contest (winner gets a nap). Listing on CoinGecko (eventually).</p>
+                    </div>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="flex items-center gap-6 group">
+                    <div class="w-20 h-20 bg-black text-[var(--neon-yellow)] rounded-full flex items-center justify-center text-4xl font-bold border-4 border-white group-hover:scale-110 transition-transform">3</div>
+                    <div class="flex-1 bg-white p-6 rounded-xl border-4 border-black neon-box">
+                        <h3 class="text-2xl font-bold">Phase 3: World Domination?</h3>
+                        <p class="text-lg">Flip Bitcoin. Buy a sloth sanctuary. Go back to sleep.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-12 border-t-4 border-[var(--neon-pink)]">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold text-[var(--neon-pink)] mb-6 animate-pulse">$SLOWPOKE</h2>
+            <div class="flex justify-center gap-8 mb-8">
+                <a href="https://x.com/i/communities/1996306976045772995" target="_blank" class="text-4xl hover:text-[var(--neon-cyan)] hover:scale-125 transition-transform"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+            <p class="text-gray-500 max-w-md mx-auto">
+                Disclaimer: $SLOWPOKE is a meme coin. The team is lazy. Invest responsibly.
+            </p>
+            <p class="mt-8 retro-font text-[var(--neon-yellow)]">
+                © 1992 Slowpoke . All Rights Reserved (Whenever we get around to filing them).
+            </p>
+        </div>
+    </footer>
+
+    <!-- Copy Address Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-[var(--neon-pink)] text-white px-8 py-4 rounded-full border-4 border-white shadow-xl translate-y-24 transition-transform duration-300 z-50 font-bold">
+        Copied Address: 0xSLOW...1234
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Copy to clipboard function
+        function copyContract() {
+            const el = document.createElement('textarea');
+            el.value = '0xSLOWPOKE_CONTRACT_ADDRESS_123456789';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-24');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24');
+            }, 2000);
+        }
+
+        // --- PARTICLE SYSTEM ENGINE ---
+        const canvas = document.getElementById('sparkle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        // Resize canvas
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Particle Class
+        class Particle {
+            constructor(x, y, type = 'spark') {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 8 + 2;
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * 6 - 3;
+                
+                // Colors: Pink, Cyan, Yellow
+                const colors = ['#FF10F0', '#00FFFF', '#FFFF00', '#FFFFFF'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                
+                this.life = 1; // Opacity/Life
+                this.decay = Math.random() * 0.02 + 0.01;
+                this.gravity = 0.1;
+                this.type = type;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedY += this.gravity; // Gravity effect
+                this.life -= this.decay;
+                
+                // Shrink
+                if (this.size > 0.2) this.size -= 0.1;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                
+                ctx.beginPath();
+                if (Math.random() > 0.5) {
+                    // Draw Star shape
+                    for (let i = 0; i < 5; i++) {
+                        ctx.lineTo(Math.cos((18 + i * 72) * 0.01745) * this.size + this.x,
+                                   Math.sin((18 + i * 72) * 0.01745) * this.size + this.y);
+                        ctx.lineTo(Math.cos((54 + i * 72) * 0.01745) * (this.size / 2) + this.x,
+                                   Math.sin((54 + i * 72) * 0.01745) * (this.size / 2) + this.y);
+                    }
+                } else {
+                    // Draw Circle
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                }
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Create sparks on mouse move
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMoving = false;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            isMoving = true;
+            
+            // Add particles on move
+            if (Math.random() > 0.5) { // Limit density
+                particles.push(new Particle(mouseX, mouseY));
+            }
+        });
+
+        // Click explosion
+        window.addEventListener('click', (e) => {
+            for (let i = 0; i < 20; i++) {
+                particles.push(new Particle(e.clientX, e.clientY));
+            }
+        });
+
+        // Animation Loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Handle particles
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+
+            // Random ambient sparks
+            if (Math.random() < 0.05) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                particles.push(new Particle(x, y));
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Scroll Reveal Effect
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-float');
+                    entry.target.style.opacity = 1;
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section h2, .bg-white').forEach(el => {
+            observer.observe(el);
+        });
+
+    </script>
+</body>
+</html>
